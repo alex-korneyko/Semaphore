@@ -1,62 +1,72 @@
 /**
- * Created by Alex Korneyko on 11.06.2016.
+ * При помощи методов wait(), notify(), notifyAll() реализовать семафор
+ * Created by Alex Korneyko on 12.06.2016.
  */
-public class SimpleSemaphore implements Semaphore {
-
-    int permits;
+class SimpleSemaphore implements Semaphore {
+    private int freePermits;
     private final Object lock = new Object();
 
-    public SimpleSemaphore(int permits) {
-        this.permits = permits;
+    SimpleSemaphore(int freePermits) {
+        this.freePermits = freePermits;
     }
 
     @Override
     public void acquire() {
-        if (permits > 0) {
-            permits--;
-        } else {
-            while (permits <= 0) {
-                try {
-                    lock.wait();
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
+        synchronized (lock) {
+            if (freePermits > 0) {
+                freePermits--;
+            } else {
+                while (freePermits == 0) {
+                    try {
+                        lock.wait();
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
                 }
+                freePermits--;
+                lock.notifyAll();
             }
-            this.permits--;
-            lock.notify();
         }
 
     }
 
     @Override
     public void acquire(int permits) {
-        if (this.permits >= permits) {
-            this.permits -= permits;
-        } else {
-            while (this.permits < permits) {
-                try {
-                    lock.wait();
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
+        synchronized (lock) {
+            if (freePermits >= permits) {
+                freePermits -= permits;
+            } else {
+                while (freePermits < permits) {
+                    try {
+                        lock.wait();
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
                 }
+                freePermits -= permits;
+                lock.notifyAll();
             }
-            this.permits -= permits;
-            lock.notifyAll();
         }
     }
 
     @Override
     public void release() {
-        permits++;
+        synchronized (lock) {
+            freePermits++;
+            lock.notifyAll();
+        }
     }
 
     @Override
     public void release(int permits) {
-        this.permits += permits;
+        synchronized (lock) {
+            freePermits += permits;
+            lock.notifyAll();
+        }
     }
 
     @Override
     public int getAvailablePermits() {
-        return permits;
+        return freePermits;
     }
 }

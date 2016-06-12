@@ -1,5 +1,6 @@
 /**
- * Created by Alex Korneyko on 11.06.2016.
+ * При помощи методов wait(), notify(), notifyAll() реализовать семафор
+ * Created by Alex Korneyko on 12.06.2016.
  */
 public interface Semaphore {
 
